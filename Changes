@@ -1,0 +1,36 @@
+Revision history for Perl extension JavaScript::SpiderMonkey.
+
+TODO: 
+      * setters/getters for arrays
+      * Get rid of GLOBAL and the limitation to one instance
+      * getter/setter called every time, callback settings checked
+        at perl level only
+      * Make fixed constants in init() configurable (1000000)
+      * Allow for different contexts
+      * Rethink function names (by_path, function_set etc.)
+
+0.08  09/19/2002
+      * Doc bug fixed, reported by Yoz Grahame.
+
+0.07  09/14/2002
+      * Release mgmt changed
+
+0.06  07/10/2002
+      * Made M*PL smarter to detect the JS target platform
+
+0.05  06/23/2002
+      * Added installation instructions to README.
+
+0.04  06/23/2002
+      * Added test case for just setter or just getter
+      * Added documentation
+      * Updated todo list
+
+0.03  06/23/2002 
+      * Added setters and getters for properties
+
+0.02  01/20/2002
+      * Fixed properties (get/set)
+
+0.01  01/03/2002
+      * Where it all began.

@@ -1,8 +1,9 @@
 Changes
 INSTALL
+Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-Makefile.PL
+META.yml			Module meta-data (added by MakeMaker)
 README
 SpiderMonkey.pm
 SpiderMonkey.xs
@@ -11,6 +12,9 @@ t/001properties.t
 t/002functions.t
 t/003properties.t
 t/004setget.t
+t/005error.t
+t/006objmeth.t
+t/007funcret.t
 t/00array.t
 t/01doc-href.t
 t/02nav-appv.t
@@ -24,4 +28,4 @@ t/09meth.t
 t/10elobj.t
 t/init.pl
 typemap
-META.yml                                 Module meta-data (added by MakeMaker)
+util/download.pl

@@ -2,8 +2,8 @@
 /* SpiderMonkey.xs -- Perl Interface to the SpiderMonkey JavaScript      */
 /*                    implementation.                                    */
 /*                                                                       */
-/* Revision:     $Revision: 1.2 $                                        */
-/* Last Checkin: $Date: 2002/08/28 21:43:28 $                            */
+/* Revision:     $Revision: 1.7 $                                        */
+/* Last Checkin: $Date: 2004/06/21 01:52:03 $                            */
 /* By:           $Author: perlmeis $                                     */
 /*                                                                       */
 /* Author: Mike Schilli mschilli1@aol.com, 2001                          */
@@ -21,6 +21,8 @@ JSClass global_class = {
     JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,
     JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub
 };
+
+static int Debug = 0;
 
 /* It's kinda silly that we have to replicate this for getters and setters,
  * but there doesn't seem to be a way to distinguish between getters
@@ -91,13 +93,40 @@ JSBool getsetter_dispatcher(
 }
 
 /* --------------------------------------------------------------------- */
+int debug_enabled(
+/* --------------------------------------------------------------------- */
+) {
+    dSP; 
+
+    int enabled = 0;
+    int count   = 0;
+
+    /* Call back into perl */
+    ENTER ; 
+    SAVETMPS ;
+    PUTBACK;
+    count = call_pv("JavaScript::SpiderMonkey::debug_enabled", G_SCALAR);
+    if(count == 1) {
+        if(POPi == 1) {
+            enabled = 1;
+        }
+    }
+    FREETMPS;
+    LEAVE;
+
+    return enabled;
+}
+
+/* --------------------------------------------------------------------- */
 static JSBool
 FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc, 
     jsval *argv, jsval *rval) {
 /* --------------------------------------------------------------------- */
     dSP; 
-    int i;
-    JSFunction      *fun;
+    SV         *sv;
+    int         i;
+    int         count;
+    JSFunction *fun;
     fun = JS_ValueToFunction(cx, argv[-2]);
 
     /* printf("Function %s received %d arguments\n", 
@@ -108,6 +137,7 @@ FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc,
     ENTER ; 
     SAVETMPS ;
     PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSViv((int)obj)));
     XPUSHs(sv_2mortal(newSVpv(
         JS_GetFunctionName(fun), 0)));
     for(i=0; i<argc; i++) {
@@ -115,7 +145,23 @@ FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc,
             JS_GetStringBytes(JS_ValueToString(cx, argv[i])), 0)));
     }
     PUTBACK;
-    call_pv("JavaScript::SpiderMonkey::function_dispatcher", G_DISCARD);
+    count = call_pv("JavaScript::SpiderMonkey::function_dispatcher", G_SCALAR);
+    SPAGAIN;
+
+    if( count > 0) {
+        sv = POPs;        
+        if(SvIOK(sv)) {
+            if(Debug)
+                fprintf(stderr, "DEBUG: %lx is an IV\n", (long) sv);
+            *rval = OBJECT_TO_JSVAL(SvIV(sv));
+        } else {
+            if(Debug) 
+                fprintf(stderr, "DEBUG: %lx is a string\n", (long) sv);
+            *rval = STRING_TO_JSVAL(SvPV(sv, PL_na));
+        }
+    }
+
+    PUTBACK;
     FREETMPS;
     LEAVE;
 
@@ -126,8 +172,11 @@ FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc,
 static void
 ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report) {
 /* --------------------------------------------------------------------- */
-    printf("Error: %s at line %d: %s\n", 
-           message, report->lineno, report->linebuf);
+     int size = 400;
+     char msg[size];
+     snprintf(msg, size, "Error: %s at line %d: %s", message, report->lineno,
+            report->linebuf);
+     sv_setpv(get_sv("@", TRUE), msg);
 }
 
 MODULE = JavaScript::SpiderMonkey	PACKAGE = JavaScript::SpiderMonkey
@@ -188,6 +237,9 @@ JS_Init(maxbytes)
         if(!rt) {
             XSRETURN_UNDEF;
         }
+            /* Replace this by Debug = debug_enabled(); once 
+             * Log::Log4perl 0.47 is out */
+        Debug = 0;
         RETVAL = rt;
     }
     OUTPUT:

@@ -1,5 +1,5 @@
 ######################################################################
-    JavaScript::SpiderMonkey 0.08
+    JavaScript::SpiderMonkey 0.10
 ######################################################################
 
 NAME
@@ -150,7 +150,7 @@ DESCRIPTION
         my $rc = $js->eval("write('hello');");
 
     The method returns 1 on success or else if there was an error in JS
-    land.
+    land. In case of an error, the JS error text will be available in $@.
 
 SpiderMonkey Installation
     First, get the latest SpiderMonkey distribution from mozilla.org:
@@ -164,6 +164,12 @@ SpiderMonkey Installation
         cp js-1.5-rc3a.tar.gz /my/path
         cd /my/path
         tar zxfv js-1.5-rc3a.tar.gz
+
+    Then, compile the SpiderMonkey distribution, if you're on Linux, just
+    use:
+
+        cd js/src
+        make -f Makefile.ref
 
     It's important that the js and JavaScript-SpiderMonkey-v.vv directories
     are at the same level:

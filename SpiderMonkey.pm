@@ -1,8 +1,8 @@
 ######################################################################
 package JavaScript::SpiderMonkey;
 ######################################################################
-# Revision:     $Revision: 1.4 $
-# Last Checkin: $Date: 2004/02/20 06:46:03 $
+# Revision:     $Revision: 1.10 $
+# Last Checkin: $Date: 2004/06/21 01:52:02 $
 # By:           $Author: perlmeis $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
@@ -75,11 +75,12 @@ use 5.006;
 use strict;
 use warnings;
 use Data::Dumper;
+use Log::Log4perl qw(:easy);
 
 require Exporter;
 require DynaLoader;
 
-our $VERSION     = '0.08';
+our $VERSION     = '0.10';
 our @ISA         = qw(Exporter DynaLoader);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
@@ -221,7 +222,7 @@ sub function_set {
 
     $obj ||= $self->{global_object}; # Defaults to global object
 
-    $self->{functions}->{$name} = $func;
+    $self->{functions}->{${$obj}}->{$name} = $func;
 
     return JavaScript::SpiderMonkey::JS_DefineFunction(
         $self->{context}, $obj, $name, 0, 0);
@@ -230,13 +231,33 @@ sub function_set {
 ##################################################
 sub function_dispatcher {
 ##################################################
-    my ($name, @args) = @_;
+    my ($obj, $name, @args) = @_;
+
+    DEBUG "Dispatching function $obj-$name-@args";
+
     our $GLOBAL;
-    # print "Dispatcher called: @args\n";
-    if(! exists $GLOBAL->{functions}->{$name}) {
-        die "Dispatcher: Can't find mapping for function '$name'";
+
+       ## Find the path for this object.
+       my $found = 0;
+       foreach( keys( %{$GLOBAL->{objects}} ) ){
+           if( ${$GLOBAL->{objects}->{$_}} eq $obj &&
+                   exists( $GLOBAL->{functions}->{$obj}->{$name}  ) ){
+                   DEBUG "Function found";
+                   $found = 1;
+               }
+       }
+       $obj = ${$GLOBAL->{global_object}} unless $found;
+
+    if(! exists $GLOBAL->{functions}->{$obj}->{$name}) {
+        LOGDIE "Dispatcher: Can't find mapping for function $obj" .
+               ${$GLOBAL->{global_object}} . " '$name'";
     }
-    $GLOBAL->{functions}->{$name}->(@args);
+
+    my $val = $GLOBAL->{functions}->{$obj}->{$name}->(@args);
+
+    DEBUG "retval=$val";
+
+    return $val;
 }
 
 ##################################################
@@ -246,18 +267,18 @@ sub getsetter_dispatcher {
 
     our $GLOBAL;
 
-    #print "Dispatcher obj=$obj\n";
-    #print "prop=$propname what=$what value=$value\n";
+    DEBUG "Dispatcher obj=$obj";
+    DEBUG "prop=$propname what=$what value=$value";
 
-    #print "GETTING properties/$obj/$propname/$what\n";
+    DEBUG "GETTING properties/$obj/$propname/$what";
 
     if(exists $GLOBAL->{properties}->{$obj}->{$propname}->{$what}) {
         my $entry = $GLOBAL->{properties}->{$obj}->{$propname}->{$what};
         my $path = $entry->{path};
-        #print "DISPATCHING for object $path ($what)\n";
+        DEBUG "DISPATCHING for object $path ($what)";
         $entry->{callback}->($path, $value);
     } else {
-        # print "properties/$obj/$propname/$what doesn't exist\n";
+        DEBUG "properties/$obj/$propname/$what doesn't exist";
     }
 }
 
@@ -277,7 +298,7 @@ sub array_set_element {
 ##################################################
     my ($self, $obj, $idx, $val) = @_;
 
-    # print "Setting $idx of $obj ($self->{context}) to $val\n";
+    DEBUG "Setting $idx of $obj ($self->{context}) to $val";
     JavaScript::SpiderMonkey::JS_SetElement(
                     $self->{context}, $obj, $idx, $val);
 }
@@ -319,8 +340,8 @@ sub array_get_element {
     my $rc = JavaScript::SpiderMonkey::JS_GetElement(
                     $self->{context}, $obj, $idx);
 
-    # print "Getting $idx of $obj ($self->{context}): ", 
-    #      $val || "undef", "\n";
+    DEBUG("Getting $idx of $obj ($self->{context}): ", 
+          ($rc || "undef"));
 
     return $rc;
 }
@@ -368,25 +389,27 @@ sub property_by_path {
 ##################################################
     my ($self, $path, $value, $getter, $setter) = @_;
 
-    # print "Retrieve/Create property $path\n";
+    DEBUG "Retrieve/Create property $path";
+
     (my $opath = $path) =~ s/\.[^.]+$//;
     my $obj = $self->object_by_path($opath);
     unless(defined $obj) {
-        warn "No object pointer found to $opath";
+        LOGWARN "No object pointer found to $opath";
         return undef;
     }
-    # print "$opath: obj=$obj\n";
+
+    DEBUG "$opath: obj=$obj";
 
     $value = 'undef' unless defined $value;
 
-    # print "Define property $self->{context}, $obj, $path, $value\n";
+    DEBUG "Define property $self->{context}, $obj, $path, $value";
 
     (my $property = $path) =~ s/.*\.//;
 
     my $prop = JavaScript::SpiderMonkey::JS_DefineProperty(
         $self->{context}, $obj, $property, $value);
 
-    # print "SETTING properties/$$obj/$property/getter\n";
+    DEBUG "SETTING properties/$$obj/$property/getter";
     if($getter) {
             # Store it under the original C pointer's value. We get
             # back a PTRREF from JS_DefineObject, but we need the
@@ -421,9 +444,11 @@ sub object_by_path {
 ##################################################
     my ($self, $path, $newobj) = @_;
 
-    #print "Got a predefined object\n" if defined $newobj;
+    DEBUG "Retrieve/Create object $path";
 
-    #print "Retrieve/Create object $path ($newobj)\n";
+    DEBUG "Got a ", defined $newobj ? "predefined" : "undefined",
+          " object";
+
     my $obj = $self->{global_object};
 
     my @parts = split /\./, $path;
@@ -438,11 +463,11 @@ sub object_by_path {
 
         if(exists $self->{objects}->{$full}) {
             $obj = $self->{objects}->{$full};
-            #print "Object $full exists: $obj\n";
+            DEBUG "Object $full exists: $obj";
         } else {
             my $gobj = $self->{global_object};
             if(defined $newobj and $path eq $full) {
-                # print "Setting $path to predefined object\n";
+                DEBUG "Setting $path to predefined object";
                 $obj = JavaScript::SpiderMonkey::JS_DefineObject(
                        $self->{context}, $obj, $part, 
                        JavaScript::SpiderMonkey::JS_GetClass($newobj), 
@@ -453,7 +478,7 @@ sub object_by_path {
                        $self->{global_class}, $self->{global_object});
             }
             $self->{objects}->{$full} = $obj;
-            #print "Object $full created: $obj\n";
+            DEBUG "Object $full created: $obj";
         }
     }
 
@@ -478,11 +503,12 @@ sub property_get {
     my($path, $property) = ($string =~ /(.*)\.([^\.]+)$/);
 
     if(!exists $self->{objects}->{$path}) {
-        warn "Cannot find object $path via SpiderMonkey";
+        LOGWARN "Cannot find object $path via SpiderMonkey";
         return;
     }
         
-    # print "Get property $self->{objects}->{$path}, $property\n";
+    DEBUG "Get property $self->{objects}->{$path}, $property";
+
     return JavaScript::SpiderMonkey::JS_GetProperty(
         $self->{context}, $self->{objects}->{$path}, 
         $property);
@@ -500,7 +526,8 @@ and the like.
     my $rc = $js->eval("write('hello');");
 
 The method returns C<1> on success or else if
-there was an error in JS land.
+there was an error in JS land. In case of an error, the JS
+error text will be available in C<$@>.
 
 =cut
 
@@ -513,6 +540,7 @@ sub eval {
         JavaScript::SpiderMonkey::JS_EvaluateScript(
             $self->{context}, $self->{global_object},
             $script, length($script), "Perl", 0);
+
     return $ok;
 }
 
@@ -522,6 +550,19 @@ sub dump {
     my ($self) = @_;
 
     Data::Dumper::Dumper($self->{objects});
+}
+
+##################################################
+sub debug_enabled {
+##################################################
+    my $logger = Log::Log4perl::get_logger("JavaScript::SpiderMonkey");
+    if(Log::Log4perl->initialized() and $logger->is_debug()) {
+        # print "DEBUG IS ENABLED\n";
+        return 1;
+    } else {
+        # print "DEBUG IS DISABLED\n";
+        return 0;
+    }
 }
 
 1;
@@ -542,6 +583,12 @@ this:
     cp js-1.5-rc3a.tar.gz /my/path
     cd /my/path
     tar zxfv js-1.5-rc3a.tar.gz
+
+Then, compile the SpiderMonkey distribution, if you're on Linux, 
+just use:
+
+    cd js/src
+    make -f Makefile.ref
 
 It's important that the js and JavaScript-SpiderMonkey-v.vv directories
 are at the same level:

@@ -2,8 +2,8 @@
 /* SpiderMonkey.xs -- Perl Interface to the SpiderMonkey JavaScript      */
 /*                    implementation.                                    */
 /*                                                                       */
-/* Revision:     $Revision: 1.7 $                                        */
-/* Last Checkin: $Date: 2004/06/21 01:52:03 $                            */
+/* Revision:     $Revision: 1.10 $                                        */
+/* Last Checkin: $Date: 2004/08/22 18:36:58 $                            */
 /* By:           $Author: perlmeis $                                     */
 /*                                                                       */
 /* Author: Mike Schilli mschilli1@aol.com, 2001                          */
@@ -13,6 +13,11 @@
 #include "perl.h"
 #include "XSUB.h"
 #include "jsapi.h"
+
+#ifdef _MSC_VER
+    /* As suggested in https://rt.cpan.org/Ticket/Display.html?id=6984 */
+#define snprintf _snprintf 
+#endif
 
 /* JSRuntime needs this global class */
 static
@@ -30,27 +35,6 @@ static int Debug = 0;
  * usenet posting there's something like IS_ASSIGN, but this doesn't
  * seem to be in SpiderMonkey 1.5).
  */
-/* --------------------------------------------------------------------- */
-JSBool getter_dispatcher(
-    JSContext *cx, 
-    JSObject  *obj,
-    jsval      id,
-    jsval     *vp
-/* --------------------------------------------------------------------- */
-) {
-    return getsetter_dispatcher(cx, obj, id, vp, "getter");
-}
-
-/* --------------------------------------------------------------------- */
-JSBool setter_dispatcher(
-    JSContext *cx, 
-    JSObject  *obj,
-    jsval      id,
-    jsval     *vp
-/* --------------------------------------------------------------------- */
-) {
-    return getsetter_dispatcher(cx, obj, id, vp, "setter");
-}
 
 /* --------------------------------------------------------------------- */
 JSBool getsetter_dispatcher(
@@ -93,6 +77,28 @@ JSBool getsetter_dispatcher(
 }
 
 /* --------------------------------------------------------------------- */
+JSBool getter_dispatcher(
+    JSContext *cx, 
+    JSObject  *obj,
+    jsval      id,
+    jsval     *vp
+/* --------------------------------------------------------------------- */
+) {
+    return getsetter_dispatcher(cx, obj, id, vp, "getter");
+}
+
+/* --------------------------------------------------------------------- */
+JSBool setter_dispatcher(
+    JSContext *cx, 
+    JSObject  *obj,
+    jsval      id,
+    jsval     *vp
+/* --------------------------------------------------------------------- */
+) {
+    return getsetter_dispatcher(cx, obj, id, vp, "setter");
+}
+
+/* --------------------------------------------------------------------- */
 int debug_enabled(
 /* --------------------------------------------------------------------- */
 ) {
@@ -124,7 +130,7 @@ FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc,
 /* --------------------------------------------------------------------- */
     dSP; 
     SV         *sv;
-    int         i;
+    unsigned    i;
     int         count;
     JSFunction *fun;
     fun = JS_ValueToFunction(cx, argv[-2]);
@@ -172,10 +178,10 @@ FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc,
 static void
 ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report) {
 /* --------------------------------------------------------------------- */
-     int size = 400;
-     char msg[size];
-     snprintf(msg, size, "Error: %s at line %d: %s", message, report->lineno,
-            report->linebuf);
+     char msg[400];
+     snprintf(msg, sizeof(msg), 
+              "Error: %s at line %d: %s", message, report->lineno,
+              report->linebuf);
      sv_setpv(get_sv("@", TRUE), msg);
 }
 
@@ -422,8 +428,6 @@ int
 JS_SetErrorReporter(cx)
     JSContext  * cx
 ######################################################################
-    PREINIT:
-    JSFunction *rc;
     CODE:
     {
         JS_SetErrorReporter(cx, ErrorReporter);
@@ -442,7 +446,6 @@ JS_DefineObject(cx, obj, name, class, proto)
     JSObject   * proto
 ######################################################################
     PREINIT:
-    JSObject *rc;
     SV       *sv = sv_newmortal();
     CODE:
     {
@@ -483,7 +486,7 @@ JS_DefineProperty(cx, obj, name, value)
     RETVAL
 
 ######################################################################
-char *
+void
 JS_GetProperty(cx, obj, name)
     JSContext   * cx
     JSObject    * obj
@@ -577,7 +580,7 @@ JS_SetElementAsObject(cx, obj, idx, elobj)
     RETVAL
 
 ######################################################################
-int
+void
 JS_GetElement(cx, obj, idx)
     JSContext  *cx
     JSObject   *obj

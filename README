@@ -1,5 +1,5 @@
 ######################################################################
-    JavaScript::SpiderMonkey 0.10
+    JavaScript::SpiderMonkey 0.11
 ######################################################################
 
 NAME
@@ -179,6 +179,18 @@ SpiderMonkey Installation
         js
         js-1.5-rc3a.tar.gz
         [/my/path]$
+
+    (Note that you *can* untar the SpiderMonkey distribution elsewhere, but,
+    if so, then you need to edit the setting of $JSLIBPATH in Makefile.PL).
+
+    Next, you need to copy the shared library file thus constructed (e.g.,
+    libjs.so or js32.dll) to an appropriate directory on your library path.
+    On Windows, this can also be the directory where the perl executable
+    lives. On Unix, this has been shown to work without copying, but this
+    way you need to keep the compiled binary in the "js" build directory
+    forever. Copying "js/src/Your_OS_DBG.OBJ/libjs.so" to "/usr/local/lib"
+    and making sure that "/usr/local/lib" is in your "LD_LIBRARY_PATH" seems
+    to be safest bet.
 
     Now, build JavaScript::SpiderMonkey in the standard way:
 

@@ -1,8 +1,8 @@
 ######################################################################
 package JavaScript::SpiderMonkey;
 ######################################################################
-# Revision:     $Revision: 1.10 $
-# Last Checkin: $Date: 2004/06/21 01:52:02 $
+# Revision:     $Revision: 1.13 $
+# Last Checkin: $Date: 2004/08/22 23:36:08 $
 # By:           $Author: perlmeis $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
@@ -80,7 +80,7 @@ use Log::Log4perl qw(:easy);
 require Exporter;
 require DynaLoader;
 
-our $VERSION     = '0.10';
+our $VERSION     = '0.11';
 our @ISA         = qw(Exporter DynaLoader);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
@@ -598,6 +598,19 @@ are at the same level:
     js
     js-1.5-rc3a.tar.gz
     [/my/path]$
+
+(Note that you *can* untar the SpiderMonkey distribution elsewhere,
+but, if so, then you need to edit the setting of $JSLIBPATH in Makefile.PL).
+
+Next, you need to copy the shared library file thus constructed
+(e.g., libjs.so or js32.dll) to an appropriate directory on your library path.
+On Windows, this can also be the directory where the perl executable 
+lives. On Unix, this has been shown to work without copying, but this way
+you need to keep the compiled binary in the C<js> build directory forever. 
+Copying
+C<js/src/Your_OS_DBG.OBJ/libjs.so> to C</usr/local/lib> and
+making sure that C</usr/local/lib> is in your C<LD_LIBRARY_PATH>
+seems to be safest bet.
 
 Now, build JavaScript::SpiderMonkey in the standard way:
 

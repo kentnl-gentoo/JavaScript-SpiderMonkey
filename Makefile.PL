@@ -1,8 +1,8 @@
 ######################################################################
 # MakeMaker file for JavaScript::SpiderMonkey
 #
-# Revision:     $Revision: 1.2 $
-# Last Checkin: $Date: 2004/02/21 04:16:50 $
+# Revision:     $Revision: 1.3 $
+# Last Checkin: $Date: 2004/07/16 06:20:31 $
 # By:           $Author: perlmeis $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
@@ -54,7 +54,10 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'JavaScript::SpiderMonkey',
     'VERSION_FROM'	=> 'SpiderMonkey.pm', # finds $VERSION
-    'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
+    'PREREQ_PM'		=> {
+        Log::Log4perl => undef,
+        Data::Dumper  => undef,
+                           }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'SpiderMonkey.pm', # retrieve abstract from module
        AUTHOR     => 'Mike <mschilli@noevalley.com>') : ()),

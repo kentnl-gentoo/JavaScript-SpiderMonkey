@@ -1,5 +1,13 @@
 Revision history for Perl extension JavaScript::SpiderMonkey.
 
+0.11 (08/22/2004)
+      * (ms) Added Log::Log4perl dependency in Makefile.PL as suggested
+             by an anonymous posting on rt.cpan.org.
+      * (ms) Added #define for MSC compiler as suggested in
+             https://rt.cpan.org/Ticket/Display.html?id=6984
+      * (ms) Roger Crew <crew@cs.stanford.edu> provided patches for
+             a clean Win32 compile plus README text on installing the dll/so.
+
 0.10  06/20/2004
       * Nikita Savin <nikita@savin.go2serve.net> provided a patch to 
         set $@ instead of printing to STDERR in case of a JS error.

@@ -1,8 +1,8 @@
 ######################################################################
 # MakeMaker file for JavaScript::SpiderMonkey
 #
-# Revision:     $Revision: 1.3 $
-# Last Checkin: $Date: 2004/07/16 06:20:31 $
+# Revision:     $Revision: 1.6 $
+# Last Checkin: $Date: 2005/12/03 20:43:48 $
 # By:           $Author: perlmeis $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
@@ -22,10 +22,15 @@ my %HINT = ( solaris => 'Sun',
 my $HINT = ($HINT{$^O} || "");
 
 if ($^O ne 'MSWin32') {
-for my $dir (glob("$JSLIBPATH/$HINT*OBJ")) {
+  for my $dir (glob("$JSLIBPATH/$HINT*OBJ")) {
     $JSLIBDIR = $dir;
     last;
-}
+  }
+
+  if (-f "$JSLIBPATH/lib$JSLIBNAME.so") {
+    $JSLIBDIR = $JSLIBPATH;
+  }
+
 } else {
   $JSLIBDIR = $JSLIBPATH . '/Release';
   $JSLIBNAME = 'js32';
@@ -55,12 +60,12 @@ WriteMakefile(
     'NAME'		=> 'JavaScript::SpiderMonkey',
     'VERSION_FROM'	=> 'SpiderMonkey.pm', # finds $VERSION
     'PREREQ_PM'		=> {
-        Log::Log4perl => undef,
-        Data::Dumper  => undef,
+        Log::Log4perl => 0,
+        Data::Dumper  => 0,
                            }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'SpiderMonkey.pm', # retrieve abstract from module
-       AUTHOR     => 'Mike <mschilli@noevalley.com>') : ()),
+       AUTHOR     => 'Mike Schilli <m@perlmeister.com>') : ()),
     'LIBS'		=> ["-L$JSLIBDIR -l$JSLIBNAME"], # e.g., '-lm'
     'DEFINE'		=> $JSDEFINE, # e.g., '-DHAVE_SOMETHING'
 	# Insert -I. if you add *.h files later:

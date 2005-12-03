@@ -1,5 +1,10 @@
 Revision history for Perl extension JavaScript::SpiderMonkey.
 
+0.12 (12/03/2005)
+    (ms) Makefile.PL prerequisite changed from undef to '0'.
+    (ms) Thomas Busch added a check to Makefile.PL to find an already
+         installed JS lib.
+
 0.11 (08/22/2004)
       * (ms) Added Log::Log4perl dependency in Makefile.PL as suggested
              by an anonymous posting on rt.cpan.org.

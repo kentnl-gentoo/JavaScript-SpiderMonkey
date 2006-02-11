@@ -1,9 +1,9 @@
 ######################################################################
 # MakeMaker file for JavaScript::SpiderMonkey
 #
-# Revision:     $Revision: 1.6 $
-# Last Checkin: $Date: 2005/12/03 20:43:48 $
-# By:           $Author: perlmeis $
+# Revision:     $Revision: 1.2 $
+# Last Checkin: $Date: 2006/02/05 15:02:01 $
+# By:           $Author: thomas_busch $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
 ######################################################################
@@ -27,8 +27,17 @@ if ($^O ne 'MSWin32') {
     last;
   }
 
-  if (-f "$JSLIBPATH/lib$JSLIBNAME.so") {
-    $JSLIBDIR = $JSLIBPATH;
+  my @OTHER_LIBPATHS = qw{
+    /usr/lib
+    /usr/local/lib
+  };
+
+  foreach my $libpath(@OTHER_LIBPATHS) {
+    if (-f "$libpath/lib$JSLIBNAME.so" ||
+        -f "$libpath/lib$JSLIBNAME.a") {
+      $JSLIBDIR = $libpath;
+      last;
+    }
   }
 
 } else {

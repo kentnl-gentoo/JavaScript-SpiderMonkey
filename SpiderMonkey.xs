@@ -2,9 +2,9 @@
 /* SpiderMonkey.xs -- Perl Interface to the SpiderMonkey JavaScript      */
 /*                    implementation.                                    */
 /*                                                                       */
-/* Revision:     $Revision: 1.11 $                                        */
-/* Last Checkin: $Date: 2005/02/11 04:18:09 $                            */
-/* By:           $Author: perlmeis $                                     */
+/* Revision:     $Revision: 1.2 $                                        */
+/* Last Checkin: $Date: 2006/02/05 15:02:58 $                            */
+/* By:           $Author: thomas_busch $                                     */
 /*                                                                       */
 /* Author: Mike Schilli mschilli1@aol.com, 2001                          */
 /* --------------------------------------------------------------------- */
@@ -27,7 +27,7 @@ JSClass global_class = {
     JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub
 };
 
-static int Debug = 10;
+static int Debug = 0;
 
 /* It's kinda silly that we have to replicate this for getters and setters,
  * but there doesn't seem to be a way to distinguish between getters
@@ -247,7 +247,7 @@ JS_Init(maxbytes)
         }
             /* Replace this by Debug = debug_enabled(); once 
              * Log::Log4perl 0.47 is out */
-        Debug = 1;
+        Debug = 0;
         RETVAL = rt;
     }
     OUTPUT:

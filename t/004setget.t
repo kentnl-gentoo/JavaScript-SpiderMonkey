@@ -1,8 +1,8 @@
 ######################################################################
 # Testcase:     Set/Get properties of objects
 # Revision:     $Revision: 1.1.1.1 $
-# Last Checkin: $Date: 2002/07/31 22:16:36 $
-# By:           $Author: perlmeis $
+# Last Checkin: $Date: 2006/02/01 06:00:49 $
+# By:           $Author: mschilli $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
 ######################################################################

@@ -1,8 +1,8 @@
 ######################################################################
 package JavaScript::SpiderMonkey;
 ######################################################################
-# Revision:     $Revision: 1.2 $
-# Last Checkin: $Date: 2006/02/11 14:32:45 $
+# Revision:     $Revision: 1.3 $
+# Last Checkin: $Date: 2006/02/12 11:25:50 $
 # By:           $Author: thomas_busch $
 #
 # Author: Mike Schilli m@perlmeister.com, 2002
@@ -80,7 +80,7 @@ use Log::Log4perl qw(:easy);
 require Exporter;
 require DynaLoader;
 
-our $VERSION     = '0.13';
+our $VERSION     = '0.14';
 our @ISA         = qw(Exporter DynaLoader);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );

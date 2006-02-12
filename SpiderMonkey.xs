@@ -2,8 +2,8 @@
 /* SpiderMonkey.xs -- Perl Interface to the SpiderMonkey JavaScript      */
 /*                    implementation.                                    */
 /*                                                                       */
-/* Revision:     $Revision: 1.2 $                                        */
-/* Last Checkin: $Date: 2006/02/05 15:02:58 $                            */
+/* Revision:     $Revision: 1.3 $                                        */
+/* Last Checkin: $Date: 2006/02/12 11:22:51 $                            */
 /* By:           $Author: thomas_busch $                                     */
 /*                                                                       */
 /* Author: Mike Schilli mschilli1@aol.com, 2001                          */
@@ -154,7 +154,8 @@ FunctionDispatcher(JSContext *cx, JSObject *obj, uintN argc,
     count = call_pv("JavaScript::SpiderMonkey::function_dispatcher", G_SCALAR);
     SPAGAIN;
 
-    fprintf(stderr, "DEBUG: Count is %d\n", count);
+    if(Debug)
+        fprintf(stderr, "DEBUG: Count is %d\n", count);
 
     if( count > 0) {
         sv = POPs;        

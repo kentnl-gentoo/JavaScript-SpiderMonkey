@@ -2,14 +2,17 @@
 #
 # MakeMaker file for JavaScript::SpiderMonkey
 #
-# Revision:     $Revision: 1.3 $
-# Last Checkin: $Date: 2006/02/28 17:13:08 $
+# Revision:     $Revision: 1.4 $
+# Last Checkin: $Date: 2006/07/28 09:33:44 $
 # By:           $Author: thomas_busch $
 #
 # Authors: Mike Schilli  m@perlmeister.com, 2002-2005
 #          Thomas Busch  tbusch@cpan.org, 2006
 #
 ######################################################################
+
+use ExtUtils::MakeMaker;
+use Getopt::Long;
 
 # Get the right lib and include dirs for different platforms
 
@@ -99,8 +102,17 @@ if ($^O ne 'MSWin32') {
   $JS_DEFINE  = '-DXP_WIN';
 };
 
+my $E4X = 0;
+GetOptions(
+  "E4X" => \$E4X,
+);
 
-use ExtUtils::MakeMaker;
+## Add E4X support if flag set.
+## For more info about E4X check http://en.wikipedia.org/wiki/E4X
+if ($E4X) {
+  $JS_DEFINE .= " -DE4X";
+  print "E4X support enabled\n";
+}
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.

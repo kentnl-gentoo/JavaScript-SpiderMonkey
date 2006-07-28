@@ -2,8 +2,8 @@
 /* SpiderMonkey.xs -- Perl Interface to the SpiderMonkey JavaScript      */
 /*                    implementation.                                    */
 /*                                                                       */
-/* Revision:     $Revision: 1.4 $                                        */
-/* Last Checkin: $Date: 2006/06/13 13:46:33 $                            */
+/* Revision:     $Revision: 1.5 $                                        */
+/* Last Checkin: $Date: 2006/07/28 09:32:03 $                            */
 /* By:           $Author: thomas_busch $                                     */
 /*                                                                       */
 /* Author: Mike Schilli mschilli1@aol.com, 2001                          */
@@ -295,6 +295,9 @@ JS_NewContext(rt, stack_chunk_size)
         if(!cx) {
             XSRETURN_UNDEF;
         }
+#ifdef E4X
+        JS_SetOptions(cx,JSOPTION_XML);
+#endif
         RETVAL = cx;
     }
     OUTPUT:

@@ -34,3 +34,4 @@ t/init.pl
 t/error.t
 typemap
 util/download.pl
+META.json                                Module JSON meta-data (added by MakeMaker)

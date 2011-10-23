@@ -1,11 +1,12 @@
 ######################################################################
 package JavaScript::SpiderMonkey;
 ######################################################################
-# Revision:     $Revision: 1.9 $
-# Last Checkin: $Date: 2010/05/29 06:49:31 $
+# Revision:     $Revision: 1.10 $
+# Last Checkin: $Date: 2011/10/23 10:27:21 $
 # By:           $Author: thomas_busch $
 #
-# Author: Mike Schilli m@perlmeister.com, 2002
+# Authors: Mike Schilli  m@perlmeister.com, 2002-2005
+#          Thomas Busch  tbusch@cpan.org, 2006-2011
 ######################################################################
 
 =head1 NAME
@@ -80,7 +81,7 @@ use Log::Log4perl qw(:easy);
 require Exporter;
 require DynaLoader;
 
-our $VERSION     = '0.20';
+our $VERSION     = '0.21';
 our @ISA         = qw(Exporter DynaLoader);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );

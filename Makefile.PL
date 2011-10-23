@@ -2,12 +2,12 @@
 #
 # MakeMaker file for JavaScript::SpiderMonkey
 #
-# Revision:     $Revision: 1.6 $
-# Last Checkin: $Date: 2010/05/29 06:49:31 $
+# Revision:     $Revision: 1.7 $
+# Last Checkin: $Date: 2011/10/23 10:27:21 $
 # By:           $Author: thomas_busch $
 #
 # Authors: Mike Schilli  m@perlmeister.com, 2002-2005
-#          Thomas Busch  tbusch@cpan.org, 2006
+#          Thomas Busch  tbusch@cpan.org, 2006-2011
 #
 ######################################################################
 
@@ -33,8 +33,10 @@ my @possible_libraries = qw(
 my %possible_install_paths = (
   "../js/src/*"      => "../js/src",
   "/usr/lib"         => "/usr/include",
+  "/usr/lib64"       => "/usr/include",          # CentOS 5 / 64 bit
   "/usr/local/lib"   => "/usr/local/include",
   "/usr/lib/firefox" => "/usr/include/firefox",
+  "/opt/local/lib"   => "/opt/local/include",    # MacPorts
 );
 
 my ($JS_LIB_DIR, @JS_INCL_DIRS, $JS_LIB_NAME);

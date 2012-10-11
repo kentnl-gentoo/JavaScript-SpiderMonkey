@@ -12,6 +12,7 @@
 ######################################################################
 
 use ExtUtils::MakeMaker;
+use ExtUtils::PkgConfig;
 use Getopt::Long;
 
 # Get the right lib and include dirs for different platforms
@@ -39,7 +40,7 @@ my %possible_install_paths = (
   "/opt/local/lib"   => "/opt/local/include",    # MacPorts
 );
 
-my ($JS_LIB_DIR, @JS_INCL_DIRS, $JS_LIB_NAME);
+my ($JS_LIB_DIR, @JS_INCL_DIRS, $JS_LIB_NAME, $JS_LIBS, $JS_INCLUDES);
 
 #### Determine compile options
 ##############################
@@ -59,6 +60,19 @@ GetOptions(
   "JS_LIB_DIR=s"    => \$JS_LIB_DIR,
   "JS_LIB_NAME=s"   => \$JS_LIB_NAME,         
 );
+
+# try to find spidermonkey via pkg-config first
+
+$JS_LIBS = ExtUtils::PkgConfig->libs ('mozjs187');
+if ("".$JS_LIBS ne "") {
+  $JS_INCLUDES = ExtUtils::PkgConfig->cflags ('mozjs187');
+} else {
+  $JS_LIBS = ExtUtils::PkgConfig->libs ('mozjs185');
+  if ("".$JS_LIBS ne "") {
+    $JS_INCLUDES = ExtUtils::PkgConfig->cflags ('mozjs185');
+  } else {
+
+# pkg-config did not work, use the old (direct) way to find older libs
 if ($JS_LIB_DIR) {
     push @JS_INCL_DIRS, $JS_LIB_DIR;
 }
@@ -80,12 +94,14 @@ foreach my $install_path(keys %possible_install_paths) {
         }
       }
       if (scalar(@JS_INCL_DIRS) == scalar(@c_header_files)) {
-        $JS_LIB_DIR = $libfile;
+        $JS_LIB_DIR = "-L".$libfile;
         $JS_LIB_DIR =~ s/$possible_lib$//;
 
         $JS_LIB_NAME = $possible_lib;
         $JS_LIB_NAME =~ s/\.(a|so|dll)$//;
         $JS_LIB_NAME =~ s/^lib//;
+
+	$JS_LIBS = "-l".$JS_LIB_NAME;
 
         last;
       } else {
@@ -96,15 +112,22 @@ foreach my $install_path(keys %possible_install_paths) {
   }
   last if $JS_LIB_DIR;
 }
+foreach my $include_dir(@JS_INCL_DIRS) {
+    $JS_INCLUDES.=" -I".$include_dir;
+}
 
 if ($JS_INCL_DIRS[0] eq $JS_INCL_DIRS[1]) {
   shift @JS_INCL_DIRS;
 }
 
+} # end of pkgcfg mozjs185
+} # end of pkgcfg mozjs187
+
+
 ## If no SpiderMonkey library found report that and exit.
 ## Otherwise print lib and include paths.
 
-if (!$JS_LIB_DIR) {
+if (!$JS_LIBS) {
     print <<EOT;
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -113,15 +136,11 @@ README file on how to download, compile and link it.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EOT
-    exit 0;
+    exit 1;
 } else {
-  print "JS_LIB_DIR:  $JS_LIB_DIR\n";
-  foreach my $include_dir(@JS_INCL_DIRS) {
-    print "JS_INCL_DIR: $include_dir\n";
-  }
-  print "JS_LIB_NAME: $JS_LIB_NAME\n";
+  print "JS_LIBS:  $JS_LIBS\n";
+  print "JS_INCLUDES: $include_dir\n";
 }
-
 
 
 ## Determine library name and system-related defines
@@ -162,10 +181,11 @@ WriteMakefile(
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'SpiderMonkey.pm', # retrieve abstract from module
        AUTHOR     => 'Mike Schilli <m@perlmeister.com>') : ()),
-    'LIBS'		=> ["-L$JS_LIB_DIR -l$JS_LIB_NAME"],
+    'LIBS'		=> ["$JS_LIB_DIR $JS_LIBS"],
     'DEFINE'		=> $JS_DEFINE, # e.g., '-DHAVE_SOMETHING'
 	# Insert -I. if you add *.h files later:
-    'INC'		=> "-I".join " -I", @JS_INCL_DIRS,
+#    'INC'		=> "-I".join " -I", @JS_INCL_DIRS,
+    'INC'		=> $JS_INCLUDES,
 	# Un-comment this if you add C files to link with later:
     # 'OBJECT'		=> '$(O_FILES)', # link all the C files too
 );

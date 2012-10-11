@@ -162,9 +162,8 @@ sub init {
     $self->{global_class} = 
         JavaScript::SpiderMonkey::JS_GlobalClass();
     $self->{global_object} = 
-        JavaScript::SpiderMonkey::JS_NewObject(
-            $self->{context}, $self->{global_class}, 
-            $self->{global_class}, $self->{global_class});
+        JavaScript::SpiderMonkey::JS_NewCompartmentAndGlobalObject(
+            $self->{context}, $self->{global_class}); 
 
     JavaScript::SpiderMonkey::JS_InitStandardClasses($self->{context}, 
                                                      $self->{global_object});
